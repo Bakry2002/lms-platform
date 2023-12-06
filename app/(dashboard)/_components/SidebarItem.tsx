@@ -41,7 +41,15 @@ const SidebarItem = ({ label, icon: Icon, href }: SidebarItemProps) => {
                     size={22}
                     className={cn('text-slate-500', isActive && 'text-sky-700')}
                 />
+                {label}
             </div>
+            <div
+                aria-hidden="true"
+                className={cn(
+                    'ml-auto h-full border-2 border-sky-700 opacity-0 transition-all',
+                    isActive && 'opacity-100',
+                )}
+            />
         </button>
     );
 };
