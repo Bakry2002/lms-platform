@@ -8,6 +8,7 @@ const handlesAuth = () => {
 
     if (!userId) throw new Error('Unauthorized');
 
+    console.log('USER: ', userId);
     return { userId };
 };
 // FileRouter for your app, can contain multiple FileRoutes
