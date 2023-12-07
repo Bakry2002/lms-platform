@@ -28,8 +28,8 @@
             "previewLimit": 50,
             "server": "localhost",
             "driver": "MySQL",
-            "connectString": "mysql://doadmin:AVNS_mlmv8pykWVjVV7VpINq@private-db-mysql-nyc3-91397-do-user-13867539-0.c.db.ondigitalocean.com:25060/defaultdb?ssl-mode=REQUIRED",
-            "name": "lms-platform"
+            "connectString": "mysql://doadmin:AVNS_mlmv8pykWVjVV7VpINq@db-mysql-nyc3-91397-do-user-13867539-0.c.db.ondigitalocean.com:25060/defaultdb?ssl-mode=REQUIRED",
+            "name": "lms"
         }
     ]
 }
