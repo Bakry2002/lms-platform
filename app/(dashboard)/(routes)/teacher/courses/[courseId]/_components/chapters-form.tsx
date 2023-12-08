@@ -3,9 +3,9 @@
 import * as z from 'zod';
 import axios from 'axios';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { set, useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
-import { Pencil, PlusCircle } from 'lucide-react';
+import { Loader2, Pencil, PlusCircle } from 'lucide-react';
 import { Fragment, useState } from 'react';
 import {
     Form,
@@ -18,11 +18,14 @@ import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
-import { Course } from '@prisma/client';
+import { Chapter, Course } from '@prisma/client';
 import { Input } from '@/components/ui/input';
+import { ChapterList } from './chapter-list';
 
 interface ChaptersFormProps {
-    initialData: Course;
+    initialData: Course & {
+        chapters: Chapter[];
+    };
     courseId: string;
 }
 
@@ -57,12 +60,41 @@ const ChaptersForm: React.FC<ChaptersFormProps> = ({
             toggleCreating();
             router.refresh();
         } catch {
-            toast.error("Something wen wrong, couldn't update course");
+            toast.error("Something wen wrong, couldn't create chapter");
         }
     };
 
+    const onReorder = async (
+        updatedData: {
+            id: string;
+            position: number;
+        }[],
+    ) => {
+        try {
+            setIsUpdating(true);
+            await axios.put(`/api/courses/${courseId}/chapters/reorder`, {
+                list: updatedData,
+            });
+            toast.success('Chapters reordered');
+            router.refresh();
+        } catch {
+            toast.error("Something wen wrong, couldn't reorder chapters");
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
+    const onEdit = (id: string) => {
+        router.push(`/teacher/courses/${courseId}/chapters/${id}`);
+    };
+
     return (
-        <div className="mt-6 rounded-md border bg-slate-100 p-4">
+        <div className="relative mt-6 rounded-md border bg-slate-100 p-4">
+            {isUpdating && (
+                <div className="absolute  right-0 top-0 flex h-full w-full items-center justify-center rounded-md bg-slate-500/20">
+                    <Loader2 className="h-6 w-6 animate-spin text-sky-700" />
+                </div>
+            )}
             <div className="flex items-center justify-between font-medium">
                 Course Chapters
                 <Button variant="ghost" onClick={toggleCreating} className="">
@@ -108,7 +140,22 @@ const ChaptersForm: React.FC<ChaptersFormProps> = ({
                     </form>
                 </Form>
             )}
-            {!isCreating && <div>No chapters</div>}
+            {!isCreating && (
+                <div
+                    className={cn(
+                        'mt-2 text-sm',
+                        !initialData.chapters.length &&
+                            'italic text-muted-foreground',
+                    )}
+                >
+                    {!initialData.chapters.length && 'No chapters'}
+                    <ChapterList
+                        onEdit={onEdit}
+                        onReorder={onReorder}
+                        items={initialData.chapters || []}
+                    />
+                </div>
+            )}
             {!isCreating && (
                 <p className="mt-4 text-xs text-muted-foreground">
                     Drag and drop to reorder the chapters
