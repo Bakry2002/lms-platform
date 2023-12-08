@@ -28,6 +28,11 @@ const CourseDetailPage = async ({ params }: CourseDetailPageProps) => {
         where: { id: courseId },
     });
 
+    // get all categories from database
+    const categories = await db.category.findMany({
+        orderBy: { name: 'asc' },
+    });
+
     if (!course) {
         return redirect('/');
     }
