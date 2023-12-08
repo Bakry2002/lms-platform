@@ -14,6 +14,7 @@ import ImageForm from './_components/image-form';
 import CategoryForm from './_components/category-form';
 import PriceForm from './_components/price-form';
 import AttachmentForm from './_components/attachment-form';
+import ChaptersForm from './_components/chapters-form';
 
 interface CourseDetailPageProps {
     params: {
@@ -33,8 +34,11 @@ const CourseDetailPage = async ({ params }: CourseDetailPageProps) => {
 
     // get equivalent course from database
     const course = await db.course.findUnique({
-        where: { id: courseId },
+        where: { id: courseId, userId },
         include: {
+            chapters: {
+                orderBy: { position: 'asc' },
+            },
             attachment: {
                 orderBy: { createdAt: 'desc' },
             },
@@ -56,6 +60,7 @@ const CourseDetailPage = async ({ params }: CourseDetailPageProps) => {
         course?.imageUrl,
         course?.price,
         course?.categoryId,
+        course?.chapters.some((chapter) => chapter.isPublished), // check if at least one chapter is published
     ];
     const totalFields = requiredField.length;
     const completedField = requiredField.filter(Boolean).length; // count the number of fields that are not null
@@ -101,7 +106,10 @@ const CourseDetailPage = async ({ params }: CourseDetailPageProps) => {
                             <IconBadge icon={ListChecks} />
                             <h2 className="text-xl">Course chapters</h2>
                         </div>
-                        <div>TODO: Chapter list</div>
+                        <ChaptersForm
+                            initialData={course}
+                            courseId={course.id}
+                        />
                     </div>
                     <div>
                         <div className="flex items-center gap-x-2">
