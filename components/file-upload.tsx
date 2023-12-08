@@ -10,13 +10,11 @@ interface FileUploadProps {
 }
 
 export const FileUpload = ({ onChange, endpoint }: FileUploadProps) => {
-    console.log('endpoint:', endpoint);
     return (
         <UploadDropzone
             endpoint={endpoint}
             onClientUploadComplete={(res) => {
-                console.log('URL from fil-upload.tsx:', res?.[0].url);
-                onChange(res?.[0].url);
+                onChange(res?.[0]?.url);
             }}
             onUploadError={(err: Error) => {
                 toast.error(`[file-upload.tsx]: ${err?.message}`);

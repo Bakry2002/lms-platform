@@ -20,18 +20,21 @@ import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
 import { Course } from '@prisma/client';
+import { Combobox } from '@/components/ui/combobox';
 
-interface DescriptionFormProps {
+interface CategoryFormProps {
     initialData: Course;
     courseId: string;
+    options: { label: string; value: string }[];
 }
 
 const formSchema = z.object({
-    description: z.string().min(1, { message: 'Description is required' }),
+    categoryId: z.string().min(1),
 });
-const DescriptionForm: React.FC<DescriptionFormProps> = ({
+const CategoryForm: React.FC<CategoryFormProps> = ({
     initialData,
     courseId,
+    options,
 }) => {
     const router = useRouter();
     const [isEditing, setIsEditing] = useState(false);
@@ -42,7 +45,7 @@ const DescriptionForm: React.FC<DescriptionFormProps> = ({
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            description: initialData?.description || '',
+            categoryId: initialData?.categoryId || '',
         },
     });
 
@@ -59,17 +62,21 @@ const DescriptionForm: React.FC<DescriptionFormProps> = ({
         }
     };
 
+    const selectedOption = options.find(
+        (option) => option.value === initialData.categoryId,
+    ); // find the selected option from the list of options
+
     return (
         <div className="mt-6 rounded-md border bg-slate-100 p-4">
             <div className="flex items-center justify-between font-medium">
-                Course description
-                <Button variant="ghost" onClick={toggleEditing} className="">
+                Course category
+                <Button variant="ghost" onClick={toggleEditing}>
                     {isEditing ? (
                         <Fragment>Cancel</Fragment>
                     ) : (
                         <Fragment>
                             <Pencil className="mr-2 h-4 w-4" />
-                            Edit description
+                            Edit category
                         </Fragment>
                     )}
                 </Button>
@@ -78,11 +85,11 @@ const DescriptionForm: React.FC<DescriptionFormProps> = ({
                 <p
                     className={cn(
                         'mt-2 text-sm',
-                        !initialData.description &&
+                        !initialData.categoryId &&
                             'italic text-muted-foreground',
                     )}
                 >
-                    {initialData.description || 'No description'}
+                    {selectedOption?.label || 'No category'}
                 </p>
             )}
             {isEditing && (
@@ -93,14 +100,16 @@ const DescriptionForm: React.FC<DescriptionFormProps> = ({
                     >
                         <FormField
                             control={form.control}
-                            name="description"
+                            name="categoryId"
                             render={({ field }) => (
                                 <FormItem>
                                     <FormControl>
-                                        <Textarea
-                                            disabled={isSubmitting}
-                                            placeholder="e.g. 'This course is about...'"
-                                            {...field}
+                                        <Combobox
+                                            options={options}
+                                            value={field.value}
+                                            onChange={(value) => {
+                                                field.onChange(value);
+                                            }}
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -123,4 +132,4 @@ const DescriptionForm: React.FC<DescriptionFormProps> = ({
     );
 };
 
-export default DescriptionForm;
+export default CategoryForm;

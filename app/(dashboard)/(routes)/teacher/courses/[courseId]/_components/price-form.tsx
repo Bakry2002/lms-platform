@@ -20,19 +20,17 @@ import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
 import { Course } from '@prisma/client';
+import { formatPrice } from '@/lib/format';
 
-interface DescriptionFormProps {
+interface PriceFormProps {
     initialData: Course;
     courseId: string;
 }
 
 const formSchema = z.object({
-    description: z.string().min(1, { message: 'Description is required' }),
+    price: z.coerce.number(), // coerce string to number
 });
-const DescriptionForm: React.FC<DescriptionFormProps> = ({
-    initialData,
-    courseId,
-}) => {
+const PriceForm: React.FC<PriceFormProps> = ({ initialData, courseId }) => {
     const router = useRouter();
     const [isEditing, setIsEditing] = useState(false);
 
@@ -42,7 +40,7 @@ const DescriptionForm: React.FC<DescriptionFormProps> = ({
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            description: initialData?.description || '',
+            price: initialData?.price || undefined,
         },
     });
 
@@ -62,14 +60,14 @@ const DescriptionForm: React.FC<DescriptionFormProps> = ({
     return (
         <div className="mt-6 rounded-md border bg-slate-100 p-4">
             <div className="flex items-center justify-between font-medium">
-                Course description
-                <Button variant="ghost" onClick={toggleEditing} className="">
+                Course price
+                <Button variant="ghost" onClick={toggleEditing}>
                     {isEditing ? (
                         <Fragment>Cancel</Fragment>
                     ) : (
                         <Fragment>
                             <Pencil className="mr-2 h-4 w-4" />
-                            Edit description
+                            Edit price
                         </Fragment>
                     )}
                 </Button>
@@ -78,11 +76,12 @@ const DescriptionForm: React.FC<DescriptionFormProps> = ({
                 <p
                     className={cn(
                         'mt-2 text-sm',
-                        !initialData.description &&
-                            'italic text-muted-foreground',
+                        !initialData.price && 'italic text-muted-foreground',
                     )}
                 >
-                    {initialData.description || 'No description'}
+                    {initialData.price
+                        ? formatPrice(initialData.price)
+                        : 'No price'}
                 </p>
             )}
             {isEditing && (
@@ -93,14 +92,15 @@ const DescriptionForm: React.FC<DescriptionFormProps> = ({
                     >
                         <FormField
                             control={form.control}
-                            name="description"
+                            name="price"
                             render={({ field }) => (
                                 <FormItem>
                                     <FormControl>
-                                        <Textarea
-                                            disabled={isSubmitting}
-                                            placeholder="e.g. 'This course is about...'"
+                                        <Input
                                             {...field}
+                                            type="number"
+                                            step="0.01"
+                                            placeholder="Set a price for your course"
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -123,4 +123,4 @@ const DescriptionForm: React.FC<DescriptionFormProps> = ({
     );
 };
 
-export default DescriptionForm;
+export default PriceForm;
