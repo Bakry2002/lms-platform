@@ -9,6 +9,105 @@ const { Video } = new Mux(
     process.env.MUX_TOKEN_SECRET!,
 );
 
+// DELETE => to delete a chapter
+export async function DELETE(
+    req: Request,
+    { params }: { params: { courseId: string; chapterId: string } },
+) {
+    try {
+        const { userId } = auth();
+        const { courseId, chapterId } = params;
+
+        if (!userId) {
+            return new NextResponse('Unauthorized', {
+                status: 401,
+            });
+        }
+
+        const courseOwner = await db.course.findUnique({
+            where: {
+                id: courseId,
+                userId,
+            },
+        });
+
+        if (!courseOwner) {
+            return new NextResponse('Unauthorized', {
+                status: 401,
+            });
+        }
+
+        // find the chapter to be deleted
+        const chapter = await db.chapter.findUnique({
+            where: {
+                id: chapterId,
+                courseId,
+            },
+        });
+
+        if (!chapter) {
+            return new NextResponse('Not found', {
+                status: 404,
+            });
+        }
+
+        // if chapter has a video, delete the asset from mux
+        if (chapter.videoUrl) {
+            // get mux data for this chapter
+            const muxData = await db.muxData.findFirst({
+                where: {
+                    chapterId,
+                },
+            });
+
+            if (muxData) {
+                await Video.Assets.del(muxData.assetId);
+                await db.muxData.delete({
+                    where: {
+                        id: muxData.id,
+                    },
+                });
+            }
+        }
+
+        const deletedChapter = await db.chapter.delete({
+            where: {
+                id: chapterId,
+            },
+        });
+
+        // check if the course still has any chapters, if not, set isPublished to false, why? because we don't want to show a course with no chapters
+        const publishedChaptersInCourse = await db.chapter.findMany({
+            where: {
+                courseId,
+                isPublished: true,
+            },
+        });
+
+        if (!publishedChaptersInCourse.length) {
+            await db.course.update({
+                where: {
+                    id: courseId,
+                },
+                data: {
+                    isPublished: false,
+                },
+            });
+        }
+
+        return NextResponse.json(deletedChapter);
+    } catch (error) {
+        console.log(
+            '[ERROR: DELETE] courses/[courseId]/chapters/[chapterId]/route.ts',
+            error,
+        );
+        return new NextResponse('Internal server error', {
+            status: 500,
+        });
+    }
+}
+
+// PATCH => to update a chapter
 export async function PATCH(
     req: Request,
     { params }: { params: { courseId: string; chapterId: string } },
@@ -86,7 +185,7 @@ export async function PATCH(
         return NextResponse.json(chapter);
     } catch (error) {
         console.log(
-            '[ERROR] courses/[courseId]/chapters/[chapterId]/route.ts',
+            '[ERROR: PATCH] courses/[courseId]/chapters/[chapterId]/route.ts',
             error,
         );
         return new NextResponse('Internal server error', {
