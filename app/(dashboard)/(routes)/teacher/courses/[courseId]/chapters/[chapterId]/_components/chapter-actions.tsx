@@ -21,10 +21,35 @@ export const ChapterActions = ({
     disabled,
 }: ChapterActionsProps) => {
     const router = useRouter();
-    const [isLoading, setIsLoading] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [isPublishing, setIsPublishing] = useState(false);
+
+    const onClick = async () => {
+        try {
+            setIsPublishing(true);
+
+            if (isPublished) {
+                await axios.patch(
+                    `/api/courses/${courseId}/chapters/${chapterId}/unpublish`,
+                ); // unpublish the chapter if it is published
+                toast.success('Chapter unpublished');
+            } else {
+                await axios.patch(
+                    `/api/courses/${courseId}/chapters/${chapterId}/publish`,
+                ); // publish the chapter
+                toast.success('Chapter published');
+            }
+            router.refresh();
+        } catch {
+            toast.error('Something went wrong');
+        } finally {
+            setIsPublishing(false);
+        }
+    };
+
     const onDelete = async () => {
         try {
-            setIsLoading(true);
+            setIsDeleting(true);
             await axios.delete(
                 `/api/courses/${courseId}/chapters/${chapterId}`,
             );
@@ -34,23 +59,29 @@ export const ChapterActions = ({
         } catch {
             toast.error('Something went wrong');
         } finally {
-            setIsLoading(false);
+            setIsDeleting(false);
         }
     };
 
     return (
         <div className="flex items-center gap-x-2">
             <Button
-                onClick={() => {}}
-                disabled={disabled || isLoading}
+                onClick={onClick}
+                disabled={disabled || isPublishing}
                 variant="outline"
                 size="sm"
             >
-                {isPublished ? 'Unpublish' : 'Publish'}
+                {isPublishing ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                ) : isPublished ? (
+                    'Unpublish'
+                ) : (
+                    'Publish'
+                )}
             </Button>
             <ConfirmModal onConfirm={onDelete}>
-                <Button size="sm" disabled={isLoading}>
-                    {isLoading ? (
+                <Button size="sm" disabled={isDeleting}>
+                    {isDeleting ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
                         <Trash className="h-4 w-4" />
