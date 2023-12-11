@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { auth } from '@clerk/nextjs';
 import { redirect } from 'next/navigation';
 import { CourseSidebar } from './_components/course-sidebar';
+import { CourseNavbar } from './_components/course-navbar';
 
 const CourseLayout = async ({
     children,
@@ -52,10 +53,16 @@ const CourseLayout = async ({
 
     return (
         <div className="h-full">
+            {/* Navbar */}
+            <div className="fixed inset-y-0 z-50 h-[80px] w-full md:pl-80">
+                <CourseNavbar course={course} progressCount={progressCount} />
+            </div>
+
+            {/* Sidebar */}
             <div className="fixed inset-y-0 z-50 hidden h-full w-80 flex-col md:flex">
                 <CourseSidebar course={course} progressCount={progressCount} />
             </div>
-            <main className="h-full md:pl-80">{children}</main>
+            <main className="h-full pt-[80px] md:pl-80">{children}</main>
         </div>
     );
 };
