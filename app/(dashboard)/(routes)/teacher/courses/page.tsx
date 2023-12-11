@@ -1,12 +1,29 @@
-import { Button, buttonVariants } from '@/components/ui/button';
-import Link from 'next/link';
+import { DataTable } from './_components/data-table';
+import { columns } from './_components/columns';
+import { auth } from '@clerk/nextjs';
+import { redirect } from 'next/navigation';
+import { db } from '@/lib/db';
 
-const CoursesPage = () => {
+const CoursesPage = async () => {
+    const { userId } = auth();
+
+    if (!userId) {
+        return redirect('/');
+    }
+
+    // fetch our courses
+    const courses = await db.course.findMany({
+        where: {
+            userId,
+        },
+        orderBy: {
+            createdAt: 'desc', // newest first
+        },
+    });
+
     return (
         <div className="p-6">
-            <Link href="/teacher/create" className={buttonVariants()}>
-                New Course
-            </Link>
+            <DataTable columns={columns} data={courses} />
         </div>
     );
 };
