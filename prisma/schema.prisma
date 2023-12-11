@@ -10,6 +10,7 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["fulltextIndex", "fullTextSearch"]
 }
 
 model Course {
@@ -32,6 +33,7 @@ model Course {
   updatedAt DateTime @updatedAt
 
   @@index([categoryId])
+  @@fulltext([title])
 } 
 
 model Category {
@@ -112,6 +114,7 @@ model Purchase {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([userId, courseId]) // user can only purchase course one time 
   @@index([courseId])
 }
 
