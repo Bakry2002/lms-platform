@@ -8,7 +8,7 @@ export const getProgress = async (
         // get all published chapters for this course
         const publishedChapters = await db.chapter.findMany({
             where: {
-                id: courseId,
+                courseId,
                 isPublished: true,
             },
             select: {
