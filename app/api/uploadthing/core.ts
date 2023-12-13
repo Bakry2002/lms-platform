@@ -1,3 +1,4 @@
+import { isTeacher } from '@/lib/teacher';
 import { auth } from '@clerk/nextjs';
 import { createUploadthing, type FileRouter } from 'uploadthing/next';
 
@@ -5,8 +6,9 @@ const f = createUploadthing();
 
 const handlesAuth = () => {
     const { userId } = auth(); // extract the userId
+    const isAuthorized = isTeacher(userId); // check if the user is authorized
 
-    if (!userId) throw new Error('Unauthorized');
+    if (!userId || !isAuthorized) throw new Error('Unauthorized');
     return { userId };
 };
 // FileRouter for your app, can contain multiple FileRoutes

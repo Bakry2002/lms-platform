@@ -1,14 +1,16 @@
 'use client';
 
-import { UserButton } from '@clerk/nextjs';
+import { UserButton, useAuth } from '@clerk/nextjs';
 import { usePathname } from 'next/navigation';
 import { Button } from './ui/button';
 import { Loader2, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import SearchInput from './search-input';
+import { isTeacher } from '@/lib/teacher';
 
 const NavbarRoutes = () => {
+    const { userId } = useAuth();
     const pathname = usePathname();
     const [isMounted, setIsMounted] = useState(false);
 
@@ -19,7 +21,7 @@ const NavbarRoutes = () => {
     }, []);
 
     // check if we on teacher page
-    const isTeacher = pathname?.startsWith('/teacher');
+    const isTeacherPage = pathname?.startsWith('/teacher');
     // check if we in player page (individual course page)
     const isCourse = pathname?.includes('/courses');
     const isSearchPage = pathname === '/search'; // check if we on search page
@@ -32,20 +34,20 @@ const NavbarRoutes = () => {
                 </div>
             )}
             <div className="ml-auto flex gap-x-2">
-                {isTeacher || isCourse ? (
+                {isTeacherPage || isCourse ? (
                     <Link href="/">
                         <Button variant="ghost" size="sm">
                             <LogOut className="mr-2 h-4 w-4" />
                             Exit
                         </Button>
                     </Link>
-                ) : (
+                ) : isTeacher(userId) ? (
                     <Link href="/teacher/courses">
                         <Button variant="ghost" size="sm">
                             Teacher mode
                         </Button>
                     </Link>
-                )}
+                ) : null}
 
                 {isMounted ? (
                     <UserButton afterSignOutUrl="/" />
