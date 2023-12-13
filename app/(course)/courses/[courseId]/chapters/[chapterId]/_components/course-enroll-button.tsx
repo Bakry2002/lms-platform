@@ -19,6 +19,7 @@ export const CourseEnrollButton = ({
 
     const onClick = async () => {
         try {
+            setIsLoading(true);
             const response = await axios.post(
                 `/api/courses/${courseId}/checkout`,
             );
@@ -27,7 +28,7 @@ export const CourseEnrollButton = ({
         } catch {
             toast.error('Something went wrong');
         } finally {
-            setIsLoading(true);
+            setIsLoading(false);
         }
     };
     return (
